@@ -22,6 +22,7 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY AI-Agent.xml /opt/payara/appserver/glassfish/domains/domain1/lib/AI-Agent.xml
+COPY domain.xml /opt/payara/appserver/glassfish/domains/domain1/config/domain.xml
 
 RUN chown -R payara:payara /opt/payara
 
