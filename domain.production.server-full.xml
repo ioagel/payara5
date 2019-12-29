@@ -1,6 +1,6 @@
 <!--suppress CheckTagEmptyBody -->
-<!-- Info: Environment Variables substituted in file: MYSQL_URL, MYSQL_USER, MYSQL_PASS, APP_INSIGHTS_AGENT_VER -->
-<domain application-root="${com.sun.aas.instanceRoot}/applications" version="1" log-root="${com.sun.aas.instanceRoot}/logs">
+<domain application-root="${com.sun.aas.instanceRoot}/applications" version="327" log-root="${com.sun.aas.instanceRoot}/logs">
+  <hazelcast-runtime-configuration></hazelcast-runtime-configuration>
   <security-configurations>
     <authentication-service default="true" name="adminAuth" use-password-credential="true">
       <security-provider provider-name="adminSpc" name="spcrealm" type="LoginModule">
@@ -39,26 +39,28 @@
     <jdbc-connection-pool is-isolation-level-guaranteed="false" datasource-classname="org.h2.jdbcx.JdbcDataSource" name="H2Pool" res-type="javax.sql.DataSource">
       <property name="URL" value="jdbc:h2:${com.sun.aas.instanceRoot}/lib/databases/embedded_default;AUTO_SERVER=TRUE"></property>
     </jdbc-connection-pool>
-    <jdbc-connection-pool datasource-classname="com.mysql.cj.jdbc.MysqlConnectionPoolDataSource" name="mtdsPool" wrap-jdbc-objects="false" connection-validation-method="auto-commit" res-type="javax.sql.ConnectionPoolDataSource">
-      <property name="URL" value="${ENV=MYSQL_URL}"></property>
-      <property name="Password" value="${ENV=MYSQL_PASS}"></property>
-      <property name="User" value="${ENV=MYSQL_USER}"></property>
-    </jdbc-connection-pool>
-    <jdbc-resource pool-name="mtdsPool" jndi-name="jdbc/mtdsResource"></jdbc-resource>
+    <managed-executor-service object-type="system-all" jndi-name="concurrent/__defaultManagedExecutorService"></managed-executor-service>
+    <managed-scheduled-executor-service object-type="system-all" jndi-name="concurrent/__defaultManagedScheduledExecutorService"></managed-scheduled-executor-service>
+    <connector-connection-pool resource-adapter-name="jmsra" max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
+    <connector-resource pool-name="jms/__defaultConnectionFactory-Connection-Pool" object-type="system-all-req" jndi-name="jms/__defaultConnectionFactory"></connector-resource>
   </resources>
   <servers>
     <server config-ref="server-config" name="server">
       <resource-ref ref="jdbc/__TimerPool"></resource-ref>
       <resource-ref ref="jdbc/__default"></resource-ref>
       <resource-ref ref="jdbc/__derby"></resource-ref>
-      <resource-ref ref="jdbc/mtdsResource"></resource-ref>
+      <resource-ref ref="concurrent/__defaultManagedExecutorService"></resource-ref>
+      <resource-ref ref="concurrent/__defaultManagedScheduledExecutorService"></resource-ref>
+      <resource-ref ref="jms/__defaultConnectionFactory"></resource-ref>
     </server>
   </servers>
   <nodes>
-    <node name="localhost-domain1" install-dir="${com.sun.aas.productRoot}" type="CONFIG" node-host="localhost"></node>
+    <node name="localhost-production" install-dir="${com.sun.aas.productRoot}" type="CONFIG" node-host="localhost"></node>
   </nodes>
   <configs>
     <config name="server-config">
+      <system-property name="JMS_PROVIDER_PORT" description="Port Number that JMS Service will listen for remote clients connection." value="7676"></system-property>
+      <payara-executor-service-configuration></payara-executor-service-configuration>
       <http-service>
         <access-log></access-log>
         <virtual-server network-listeners="http-listener-1,http-listener-2" id="server"></virtual-server>
@@ -100,21 +102,27 @@
       <notification-service-configuration enabled="true">
         <log-notifier-configuration enabled="true"></log-notifier-configuration>
       </notification-service-configuration>
+      <batch-runtime-configuration data-source-lookup-name="jdbc/__default"></batch-runtime-configuration>
       <monitoring-service-configuration></monitoring-service-configuration>
       <microprofile-metrics-configuration></microprofile-metrics-configuration>
-      <stuck-threads-checker></stuck-threads-checker>
-      <payara-executor-service-configuration></payara-executor-service-configuration>
-      <admin-audit-configuration></admin-audit-configuration>
       <metrics-health-check-configuration></metrics-health-check-configuration>
+      <ejb-invoker-configuration></ejb-invoker-configuration>
+      <admin-audit-configuration></admin-audit-configuration>
+      <rest-monitoring-configuration></rest-monitoring-configuration>
+      <zendesk-support-configuration></zendesk-support-configuration>
+      <stuck-threads-checker></stuck-threads-checker>
       <health-check-service-configuration>
         <log-notifier></log-notifier>
       </health-check-service-configuration>
-      <phone-home-runtime-configuration phone-home-id="0d2aa0f0-ae0c-40ba-bddf-8b4dfa700e1e"></phone-home-runtime-configuration>
+      <phone-home-runtime-configuration phone-home-id="e577b708-2706-4ad9-af0b-3038e67d8ea4"></phone-home-runtime-configuration>
+      <microprofile-config></microprofile-config>
       <microprofile-config></microprofile-config>
       <amx-configuration></amx-configuration>
       <microprofile-fault-tolerance-configuration></microprofile-fault-tolerance-configuration>
       <microprofile-openapi-configuration></microprofile-openapi-configuration>
-      <zendesk-support-configuration></zendesk-support-configuration>
+      <jms-service default-jms-host="default_JMS_host" type="EMBEDDED">
+        <jms-host port="${JMS_PROVIDER_PORT}" name="default_JMS_host" host="localhost"></jms-host>
+      </jms-service>
       <diagnostic-service></diagnostic-service>
       <security-service>
         <auth-realm classname="com.sun.enterprise.security.auth.realm.file.FileRealm" name="admin-realm">
@@ -126,20 +134,6 @@
           <property name="jaas-context" value="fileRealm"></property>
         </auth-realm>
         <auth-realm classname="com.sun.enterprise.security.auth.realm.certificate.CertificateRealm" name="certificate"></auth-realm>
-        <auth-realm classname="com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm" name="mtds-realm">
-          <property name="jaas-context" value="jdbcRealm"></property>
-          <property name="encoding" value="Hex"></property>
-          <property name="password-column" value="password"></property>
-          <property name="datasource-jndi" value="jdbc/mtdsResource"></property>
-          <property name="group-table" value="mtds.groups"></property>
-          <property name="charset" value="UTF-8"></property>
-          <property name="user-table" value="mtds.users"></property>
-          <property name="group-name-column" value="groupname"></property>
-          <property name="digestrealm-password-enc-algorithm" value="AES"></property>
-          <property name="group-table-user-name-column" value="username"></property>
-          <property name="digest-algorithm" value="SHA-512"></property>
-          <property name="user-name-column" value="username"></property>
-        </auth-realm>
         <jacc-provider policy-provider="com.sun.enterprise.security.provider.PolicyWrapper" name="default" policy-configuration-factory-provider="com.sun.enterprise.security.provider.PolicyConfigurationFactoryImpl">
           <property name="repository" value="${com.sun.aas.instanceRoot}/generated/policy"></property>
         </jacc-provider>
@@ -192,19 +186,6 @@
         <property name="default-digest-algorithm" value="SHA-256"></property>
       </security-service>
       <java-config classpath-suffix="" debug-options="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9009" system-classpath="">
-        <!-- My Customizations from production domain -->
-<!--        <jvm-options>-server</jvm-options>-->
-<!--        <jvm-options>-Xmx1024m</jvm-options>-->
-<!--        <jvm-options>-Xms1024m</jvm-options>-->
-        <jvm-options>-XX:+UseG1GC</jvm-options>
-        <jvm-options>-XX:+UseStringDeduplication</jvm-options>
-<!--        <jvm-options>-Dfish.payara.classloading.delegate=false</jvm-options>-->
-        <jvm-options>-XX:MaxGCPauseMillis=500</jvm-options>
-        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
-        <jvm-options>-XX:MaxMetaspaceSize=768m</jvm-options>
-        <jvm-options>-XX:+IgnoreUnrecognizedVMOptions</jvm-options>
-        <jvm-options>-javaagent:${com.sun.aas.instanceRoot}/lib/applicationinsights-agent-${ENV=APP_INSIGHTS_AGENT_VER}.jar</jvm-options>
-        <!-- End of my Customizations -->
         <jvm-options>[9|]--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED</jvm-options>
@@ -218,10 +199,15 @@
         <jvm-options>[9|]--add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.naming/javax.naming.spi=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jvm-options>
+        <jvm-options>-XX:+UseG1GC</jvm-options>
+        <jvm-options>-XX:+UseStringDeduplication</jvm-options>
+        <jvm-options>-XX:MaxGCPauseMillis=500</jvm-options>
+        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
+        <jvm-options>-XX:MaxMetaspaceSize=2g</jvm-options>
+        <jvm-options>-XX:+UnlockDiagnosticVMOptions</jvm-options>
         <jvm-options>-Djava.awt.headless=true</jvm-options>
         <jvm-options>-Djdk.corba.allowOutputStreamSubclass=true</jvm-options>
         <jvm-options>-Djavax.xml.accessExternalSchema=all</jvm-options>
-        <jvm-options>-XX:+UnlockDiagnosticVMOptions</jvm-options>
         <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
         <jvm-options>-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf</jvm-options>
         <jvm-options>-Djavax.net.ssl.keyStore=${com.sun.aas.instanceRoot}/config/keystore.jks</jvm-options>
@@ -248,6 +234,7 @@
       <availability-service>
         <web-container-availability></web-container-availability>
         <ejb-container-availability sfsb-store-pool-name="jdbc/hastore"></ejb-container-availability>
+        <jms-availability></jms-availability>
       </availability-service>
       <network-config>
         <protocols>
@@ -294,9 +281,9 @@
         </transports>
       </network-config>
       <thread-pools>
-        <thread-pool name="admin-thread-pool" min-thread-pool-size="1" max-queue-size="256" max-thread-pool-size="15"></thread-pool>
         <thread-pool name="http-thread-pool" max-thread-pool-size="50"></thread-pool>
-        <thread-pool name="thread-pool-1" max-thread-pool-size="200"></thread-pool>
+        <thread-pool name="thread-pool-1" max-thread-pool-size="250"></thread-pool>
+        <thread-pool name="admin-thread-pool" min-thread-pool-size="1" max-queue-size="256" max-thread-pool-size="15"></thread-pool>
       </thread-pools>
       <system-property name="fish.payara.classloading.delegate" value="false"></system-property>
       <system-property name="jersey.config.client.readTimeout" value="300000"></system-property>
@@ -311,6 +298,7 @@
       </monitoring-service>
     </config>
     <config name="default-config">
+      <payara-executor-service-configuration></payara-executor-service-configuration>
       <http-service>
         <access-log></access-log>
         <virtual-server network-listeners="http-listener-1, http-listener-2" id="server">
@@ -349,6 +337,9 @@
         <ejb-timer-service></ejb-timer-service>
       </ejb-container>
       <mdb-container></mdb-container>
+      <jms-service addresslist-behavior="priority" default-jms-host="default_JMS_host" type="EMBEDDED">
+        <jms-host port="${JMS_PROVIDER_PORT}" host="localhost" name="default_JMS_host"></jms-host>
+      </jms-service>
       <log-service file="${com.sun.aas.instanceRoot}/logs/server.log" log-rotation-limit-in-bytes="2000000">
         <module-log-levels></module-log-levels>
       </log-service>
@@ -465,6 +456,7 @@
       <availability-service>
         <web-container-availability></web-container-availability>
         <ejb-container-availability sfsb-store-pool-name="jdbc/hastore"></ejb-container-availability>
+        <jms-availability></jms-availability>
       </availability-service>
       <network-config>
         <protocols>
@@ -512,12 +504,13 @@
       </network-config>
       <thread-pools>
         <thread-pool name="http-thread-pool"></thread-pool>
-        <thread-pool name="thread-pool-1" min-thread-pool-size="2" max-thread-pool-size="200"></thread-pool>
+        <thread-pool name="thread-pool-1" min-thread-pool-size="2" max-thread-pool-size="250"></thread-pool>
         <thread-pool name="admin-thread-pool" min-thread-pool-size="1" max-queue-size="256" max-thread-pool-size="15"></thread-pool>
       </thread-pools>
       <group-management-service>
         <failure-detection></failure-detection>
       </group-management-service>
+      <system-property name="JMS_PROVIDER_PORT" description="Port Number that JMS Service will listen for remote clients connection." value="27676"></system-property>
       <system-property name="ASADMIN_LISTENER_PORT" value="24848"></system-property>
       <system-property name="HTTP_LISTENER_PORT" value="28080"></system-property>
       <system-property name="HTTP_SSL_LISTENER_PORT" value="28181"></system-property>
@@ -528,13 +521,14 @@
       <system-property name="OSGI_SHELL_TELNET_PORT" value="26666"></system-property>
       <system-property name="JAVA_DEBUGGER_PORT" value="29009"></system-property>
       <system-property name="fish.payara.classloading.delegate" value="false"></system-property>
+      <system-property name="org.jboss.weld.clustering.rollingUpgradesIdDelimiter" value=".."></system-property>
       <monitoring-service>
         <module-monitoring-levels></module-monitoring-levels>
       </monitoring-service>
     </config>
   </configs>
-  <property name="administrative.domain.name" value="domain1"></property>
-  <secure-admin special-admin-indicator="3f3ad737-290d-469c-8dac-8eff05601381" enabled="true">
+  <property name="administrative.domain.name" value="production"></property>
+  <secure-admin special-admin-indicator="91732b8e-704f-4aef-bd5a-1c09818d87b4" enabled="true">
     <secure-admin-principal dn="CN=localhost,OU=Payara,O=Payara Foundation,L=Great Malvern,ST=Worcestershire,C=UK"></secure-admin-principal>
     <secure-admin-principal dn="CN=localhost-instance,OU=Payara,O=Payara Foundation,L=Great Malvern,ST=Worcestershire,C=UK"></secure-admin-principal>
   </secure-admin>
