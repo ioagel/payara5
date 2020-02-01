@@ -131,14 +131,14 @@
           <property name="encoding" value="Hex"></property>
           <property name="password-column" value="password"></property>
           <property name="datasource-jndi" value="jdbc/mtdsResource"></property>
-          <property name="group-table" value="mtds.groups"></property>
+          <property name="group-table" value="mtds.users_groups"></property>
           <property name="charset" value="UTF-8"></property>
-          <property name="user-table" value="mtds.users"></property>
+          <property name="user-table" value="mtds.users_groups"></property>
           <property name="group-name-column" value="groupname"></property>
           <property name="digestrealm-password-enc-algorithm" value="AES"></property>
-          <property name="group-table-user-name-column" value="user_id"></property>
+          <property name="group-table-user-name-column" value="username"></property>
           <property name="digest-algorithm" value="SHA-512"></property>
-          <property name="user-name-column" value="id"></property>
+          <property name="user-name-column" value="username"></property>
         </auth-realm>
         <jacc-provider policy-provider="com.sun.enterprise.security.provider.PolicyWrapper" name="default" policy-configuration-factory-provider="com.sun.enterprise.security.provider.PolicyConfigurationFactoryImpl">
           <property name="repository" value="${com.sun.aas.instanceRoot}/generated/policy"></property>
