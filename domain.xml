@@ -136,9 +136,9 @@
           <property name="user-table" value="mtds.users"></property>
           <property name="group-name-column" value="groupname"></property>
           <property name="digestrealm-password-enc-algorithm" value="AES"></property>
-          <property name="group-table-user-name-column" value="username"></property>
+          <property name="group-table-user-name-column" value="user_id"></property>
           <property name="digest-algorithm" value="SHA-512"></property>
-          <property name="user-name-column" value="username"></property>
+          <property name="user-name-column" value="id"></property>
         </auth-realm>
         <jacc-provider policy-provider="com.sun.enterprise.security.provider.PolicyWrapper" name="default" policy-configuration-factory-provider="com.sun.enterprise.security.provider.PolicyConfigurationFactoryImpl">
           <property name="repository" value="${com.sun.aas.instanceRoot}/generated/policy"></property>
