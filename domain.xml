@@ -131,9 +131,9 @@
           <property name="encoding" value="Hex"></property>
           <property name="password-column" value="password"></property>
           <property name="datasource-jndi" value="jdbc/mtdsResource"></property>
-          <property name="group-table" value="mtds.users_groups"></property>
+          <property name="group-table" value="mtds.users_groups_view"></property>
           <property name="charset" value="UTF-8"></property>
-          <property name="user-table" value="mtds.users_groups"></property>
+          <property name="user-table" value="mtds.users_groups_view"></property>
           <property name="group-name-column" value="groupname"></property>
           <property name="digestrealm-password-enc-algorithm" value="AES"></property>
           <property name="group-table-user-name-column" value="username"></property>
