@@ -18,6 +18,7 @@ RUN apt update && \
     rm -rf /usr/share/fonts/truetype/msttcorefonts /usr/share/fonts/X11 *.zip mysql* && \
     rm -rf /var/lib/apt/lists/*
 
+# Optional: Customize it and use
 COPY domain.xml default-web.xml /opt/payara/appserver/glassfish/domains/domain1/config/
 
 RUN chown -R payara:payara /opt/payara
