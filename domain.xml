@@ -1,5 +1,5 @@
 <!--suppress CheckTagEmptyBody -->
-<!-- Info: Environment Variables substituted in file: MYSQL_URL, MYSQL_USER, MYSQL_PASS, APP_INSIGHTS_AGENT_VER -->
+<!-- Info: Environment Variables substituted in file: MYSQL_URL, MYSQL_USER, MYSQL_PASS -->
 <domain application-root="${com.sun.aas.instanceRoot}/applications" version="1" log-root="${com.sun.aas.instanceRoot}/logs">
   <security-configurations>
     <authentication-service default="true" name="adminAuth" use-password-credential="true">
@@ -203,7 +203,6 @@
         <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
         <jvm-options>-XX:MaxMetaspaceSize=768m</jvm-options>
         <jvm-options>-XX:+IgnoreUnrecognizedVMOptions</jvm-options>
-        <jvm-options>-javaagent:${com.sun.aas.instanceRoot}/lib/applicationinsights-agent-${ENV=APP_INSIGHTS_AGENT_VER}.jar</jvm-options>
         <!-- End of my Customizations -->
         <jvm-options>[9|]--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED</jvm-options>

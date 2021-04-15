@@ -39,6 +39,7 @@
    holder.
 -->
 
+<!--suppress WebProperties -->
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.1" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
 
   <!-- ======================== Introduction ============================== -->
@@ -293,6 +294,7 @@
   <servlet>
     <servlet-name>jsp</servlet-name>
     <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <!-- INFO: My Entries for PRODUCTION: START -->
     <init-param>
       <param-name>development</param-name>
       <param-value>false</param-value>
@@ -301,6 +303,7 @@
       <param-name>genStrAsCharArray</param-name>
       <param-value>true</param-value>
     </init-param>
+    <!-- My Entries for PRODUCTION: END -->
     <init-param>
       <param-name>xpoweredBy</param-name>
       <param-value>false</param-value>
